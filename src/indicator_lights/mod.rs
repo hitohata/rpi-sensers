@@ -1,5 +1,5 @@
-pub mod information_light;
-pub mod lights;
+mod information_lights;
+pub use information_lights::{ sensor_light_initialize, InformationKind };
 
 #[derive(Debug)]
 pub enum LED {

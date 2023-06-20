@@ -2,7 +2,7 @@ mod indicator_lights;
 
 use dht11::DHT11;
 use rppal::hal::Delay;
-use indicator_lights::information_light::{ sensor_light_initialize, InformationKind };
+use indicator_lights::{ sensor_light_initialize, InformationKind };
 use indicator_lights::LED;
 
 #[tokio::main]

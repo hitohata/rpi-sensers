@@ -1,11 +1,10 @@
-mod error_display;
+mod indicator_lights;
 
 use dht11::DHT11;
 use rppal::hal::Delay;
 use tokio::sync::mpsc;
-use led_light::LEDPin;
-use std::sync::mpsc::{ Receiver };
-use error_display::error_light_sync;
+use led_light::{ LEDPin, BlinkingLEDPin };
+use indicator_lights::lights::error_light_sync;
 
 #[tokio::main]
 async fn main() {
@@ -17,6 +16,16 @@ async fn main() {
     let mut dht11_led = LEDPin::new(temp_sensor_led).unwrap();
 
     let (tx, mut rx) = std::sync::mpsc::channel();
+
+    let h = std::thread::spawn(move || {
+        let mut light = BlinkingLEDPin::new(19).unwrap();
+        loop {
+            light.start_blinking();
+            std::thread::sleep(std::time::Duration::from_secs(10));
+            light.stop_blinking();
+            std::thread::sleep(std::time::Duration::from_secs(10));
+        }
+    });
 
     let handle = std::thread::spawn(move || {
         let mut delay = Delay::new();

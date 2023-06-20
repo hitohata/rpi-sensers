@@ -20,8 +20,11 @@ impl LEDPin {
             Err(_) => return Err(LEDPinError::LEDPinInitializationError(format!("Pin, {}, initialization failed", pin_number)))
         };
 
+        let mut out_pin = pin.into_output();
+        out_pin.set_low();
+
         Ok(LEDPin {
-            pin: pin.into_output()
+            pin: out_pin
         })
     }
 

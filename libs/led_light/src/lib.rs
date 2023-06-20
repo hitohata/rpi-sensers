@@ -113,7 +113,14 @@ impl BlinkingLEDPin {
     }
 
     pub fn stop_blinking(&mut self) {
-        *self.blinking.write().unwrap() = false;
+
+        let read_lock = self.blinking.read().unwrap();
+        let current_state = read_lock.clone();
+        drop(read_lock);
+
+        if current_state {
+            *self.blinking.write().unwrap() = false;
+        }
     } 
 
 

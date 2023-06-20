@@ -1,8 +1,11 @@
+mod error_display;
+
 use dht11::DHT11;
 use rppal::hal::Delay;
 use tokio::sync::mpsc;
 use led_light::LEDPin;
 use std::sync::mpsc::{ Receiver };
+use error_display::error_light_sync;
 
 #[tokio::main]
 async fn main() {
@@ -42,22 +45,9 @@ async fn main() {
     });
 
     let error_light = std::thread::spawn(move || {
-        error_light(rx);
+        error_light_sync(rx);
     });
 
     handle.join().unwrap();
     error_light.join().unwrap();
-}
-
-fn error_light(rx: Receiver<bool>) {
-    let mut error_light = LEDPin::new(13).unwrap();
-
-    while let Ok(state) = rx.recv() {
-        if state {
-            error_light.turn_off();
-        } else {
-            error_light.turn_on();
-        }
-    }
-    
 }

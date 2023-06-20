@@ -2,61 +2,49 @@ mod indicator_lights;
 
 use dht11::DHT11;
 use rppal::hal::Delay;
-use tokio::sync::mpsc;
-use led_light::{ LEDPin, BlinkingLEDPin };
-use indicator_lights::lights::error_light_sync;
+use indicator_lights::information_light::{ sensor_light_initialize, SensorsKind, LEDState };
 
 #[tokio::main]
 async fn main() {
 
     let temperature_sensor_pin = 5;
-    let temp_sensor_led = 6;
 
-    let mut dht11 = DHT11::new(temperature_sensor_pin).unwrap();
-    let mut dht11_led = LEDPin::new(temp_sensor_led).unwrap();
+    let info_indicator_tx = sensor_light_initialize(6).await;
+    let info_indicator_tx1 = info_indicator_tx.clone();
 
-    let (tx, mut rx) = std::sync::mpsc::channel();
+    let handle = tokio::spawn(async move {
 
-    let h = std::thread::spawn(move || {
-        let mut light = BlinkingLEDPin::new(19).unwrap();
-        loop {
-            light.start_blinking();
-            std::thread::sleep(std::time::Duration::from_secs(10));
-            light.stop_blinking();
-            std::thread::sleep(std::time::Duration::from_secs(10));
-        }
-    });
-
-    let handle = std::thread::spawn(move || {
+        let mut dht11 = DHT11::new(temperature_sensor_pin).unwrap();
         let mut delay = Delay::new();
 
         let mut errored = false;
 
         loop {
-            dht11_led.turn_on();
+            info_indicator_tx1.send(SensorsKind::ThermoHumidity(LEDState::ON)).await;
+            
             match dht11.read(&mut delay) {
                 Ok(temperature) => { 
                     println!("{:?}", temperature);
-                    if errored {
-                        tx.send(true).unwrap();
-                    }
+                    // if errored {
+                    //     tx.send(true).unwrap();
+                    // }
                 },
                 Err(e) => {
                     println!("{:?}", e);
-                    tx.send(false).unwrap();
+                    // tx.send(false).unwrap();
                     errored = true;
                 }
             }
-            dht11_led.turn_off();
+            info_indicator_tx1.send(SensorsKind::ThermoHumidity(LEDState::OFF)).await;
             std::thread::sleep(std::time::Duration::from_secs(3));
         }
 
     });
 
-    let error_light = std::thread::spawn(move || {
-        error_light_sync(rx);
-    });
+    // let error_light = std::thread::spawn(move || {
+    //     error_light_sync(rx);
+    // });
 
-    handle.join().unwrap();
-    error_light.join().unwrap();
+    handle.await;
+    // error_light.join().unwrap();
 }

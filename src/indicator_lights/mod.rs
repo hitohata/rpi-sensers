@@ -1,2 +1,2 @@
-pub mod sensors;
+pub mod information_light;
 pub mod lights;

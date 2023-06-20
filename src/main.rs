@@ -2,7 +2,8 @@ use dht11::DHT11;
 use rppal::hal::Delay;
 use led_light::LEDPin;
 
-fn main() {
+#[tokio::main]
+async fn main() {
 
     let temperature_sensor_pin = 5;
     let temp_sensor_led = 6;
@@ -23,4 +24,8 @@ fn main() {
     });
 
     handle.join().unwrap();
+}
+
+fn error_light() {
+    let 
 }

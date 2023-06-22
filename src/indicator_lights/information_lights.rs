@@ -1,23 +1,40 @@
 use std::sync::mpsc::Sender;
 use std::sync::RwLock;
 use std::sync::Arc;
-use led_light::{ LEDPin, BlinkingLEDPin };
 use crate::indicator_lights::LED;
+use super::led_light::{ LEDPin, BlinkingLEDPin };
 
 type SensorStateType = Arc<RwLock<InformationState>>;
 type ErrorStateType = Arc<RwLock<ErrorState>>;
 
 /// this struct holds an access state to sensors.
 /// true means it is busy, and false means not being accessed.
-#[derive(Default)]
 struct InformationState {
-    thermo_humidity_sensor: bool,
-    network_access: bool
+    thermo_humidity_sensor: LED,
+    network_access: LED
 }
 
-#[derive(Default)]
+impl Default for InformationState {
+    fn default() -> Self {
+        InformationState {
+            thermo_humidity_sensor: LED::OFF,
+            network_access: LED::OFF
+        }
+    }
+}
+
 struct ErrorState {
-    sensor_error: bool
+    sensor_error: LED,
+    network_error: LED
+}
+
+impl Default for ErrorState {
+    fn default() -> Self {
+        ErrorState {
+            sensor_error: LED::OFF,
+            network_error: LED::OFF
+        }   
+    }
 }
 
 /// this struct is just a wrapper of the State struct.
@@ -29,26 +46,22 @@ struct StateHandler {
 impl StateHandler {
     fn change_thermo_humidity_state(&self, state: LED) {
         let mut lock = self.state.write().unwrap();
-        lock.thermo_humidity_sensor = match state {
-            LED::ON => true,
-            LED::OFF => false
-        };
+        lock.thermo_humidity_sensor = state;
     }   
 
     fn change_network_state(&self, state: LED) {
         let mut lock = self.state.write().unwrap();
-        lock.network_access = match state {
-            LED::ON => true,
-            LED::OFF => false
-        }
+        lock.network_access = state;
     }
 
     fn change_error_state(&self, state: LED) {
         let mut lock = self.error.write().unwrap();
-        lock.sensor_error = match state {
-            LED::ON => true,
-            LED::OFF => false
-        }
+        lock.sensor_error = state;
+    }
+
+    fn change_network_error(&self, state: LED) {
+        let mut lock = self.error.write().unwrap();
+        lock.sensor_error = state;
     }
 }
 
@@ -78,13 +91,13 @@ pub fn sensor_light_initialize(sensor_pin_number: u8, network_pin_number: u8, er
         loop {
             let information_state_read = information_state.read().unwrap();
             match information_state_read.thermo_humidity_sensor {
-                true => sensor_light.turn_on(),
-                false => sensor_light.turn_off()
+                LED::ON => sensor_light.turn_on(),
+                LED::OFF => sensor_light.turn_off()
             };
 
             match information_state_read.network_access {
-                true => {network_light.start_blinking();},
-                false => {network_light.stop_blinking();}
+                LED::ON => {network_light.start_blinking();},
+                LED::OFF => {network_light.stop_blinking();}
             };
         }
     });
@@ -94,11 +107,15 @@ pub fn sensor_light_initialize(sensor_pin_number: u8, network_pin_number: u8, er
         let mut error_light = LEDPin::new(error_pin_number).unwrap();
 
         loop {
-            let mut error_state_read = error_state.read().unwrap();
+            let error_state_read = error_state.read().unwrap();
 
             match error_state_read.sensor_error {
-                true => { error_light.turn_on(); },
-                false => { error_light.turn_off(); }
+                LED::ON => { error_light.turn_on(); },
+                LED::OFF => { error_light.turn_off(); }
+            }
+            match error_state_read.network_error {
+                LED::ON => { error_light.turn_on(); },
+                LED::OFF => { error_light.turn_off(); }
             }
 
         }

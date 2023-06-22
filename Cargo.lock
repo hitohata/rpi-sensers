@@ -54,14 +54,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "led_light"
-version = "0.1.0"
-dependencies = [
- "rppal",
- "thiserror",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.146"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -127,8 +119,8 @@ name = "rpi_sensor"
 version = "0.1.0"
 dependencies = [
  "dht11",
- "led_light",
  "rppal",
+ "thiserror",
  "tokio",
 ]
 

@@ -1,8 +1,0 @@
-[package]
-name = "led_light"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-rppal = { version = "0.14.1", features = ["hal"] }
-thiserror = "1"

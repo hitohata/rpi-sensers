@@ -1,9 +1,9 @@
 mod indicator_lights;
+mod sensors;
 
-use dht11::DHT11;
-use rppal::hal::Delay;
 use indicator_lights::{ sensor_light_initialize, InformationKind };
 use indicator_lights::LED;
+use sensors::temperature_humidity::ThermoHumiditySensor;
 
 #[tokio::main]
 async fn main() {
@@ -15,15 +15,20 @@ async fn main() {
 
     let handle = std::thread::spawn(move || {
 
-        let mut dht11 = DHT11::new(temperature_sensor_pin).unwrap();
-        let mut delay = Delay::new();
+        let mut temperature_sensor = match ThermoHumiditySensor::new(temperature_sensor_pin) {
+            Ok(sensor) => sensor,
+            Err(_) => {
+                info_indicator_tx1.send(InformationKind::SensorError(LED::ON));
+                return;
+            }
+        }; 
 
         let mut errored = false;
 
         loop {
             info_indicator_tx1.send(InformationKind::ThermoHumidity(LED::ON));
             
-            match dht11.read(&mut delay) {
+            match temperature_sensor.get_data() {
                 Ok(temperature) => { 
                     println!("{:?}", temperature);
                     if errored {

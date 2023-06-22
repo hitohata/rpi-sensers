@@ -11,7 +11,7 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 [[package]]
 name = "dht11"
 version = "0.1.0"
-source = "git+https://github.com/hitohata/DHT11.git#6d97edfee923081689e720fcabfb5779e85ec4ac"
+source = "git+https://github.com/hitohata/DHT11.git#f4895782ad661a87460e35024bf357f74f9f46ad"
 dependencies = [
  "embedded-hal 0.2.7",
  "rppal",
